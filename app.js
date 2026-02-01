@@ -16,7 +16,7 @@ const gotoBtn = document.getElementById("gotoBtn");
 // LOAD JSON
 //-------------------------------------------------------------
 fetch("pages.json")
-  .then(res => res.json())
+  .then(r => r.json())
   .then(data => {
     document.getElementById("bookTitle").textContent = data.title;
     pages = data.pages;
@@ -34,14 +34,12 @@ function initViewer() {
   pages.forEach(page => {
     const card = document.createElement("div");
     card.className = "page-card";
-
     card.dataset.start = page.start;
     card.dataset.end = page.end;
     card.dataset.label = page.label.toLowerCase();
 
     const title = document.createElement("div");
-    title.style.fontWeight = "600";
-    title.style.marginBottom = "6px";
+    title.className = "page-title";
 
     if (page.start !== null) {
       title.textContent =
@@ -53,37 +51,21 @@ function initViewer() {
     }
 
     const img = document.createElement("img");
-    img.dataset.src = page.src;
+    img.loading = "lazy";
+    img.src = page.src;
 
-    const btns = document.createElement("div");
-    btns.innerHTML = `<a href="${page.src}" target="_blank">Открыть</a>`;
+    const link = document.createElement("a");
+    link.href = page.src;
+    link.target = "_blank";
+    link.textContent = "Открыть";
 
-    card.append(title, img, btns);
+    card.append(title, img, link);
     viewer.append(card);
   });
-
-  lazyLoadImages();
 }
 
 //-------------------------------------------------------------
-// LAZY LOAD
-//-------------------------------------------------------------
-function lazyLoadImages() {
-  const imgs = document.querySelectorAll("img[data-src]");
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.src = e.target.dataset.src;
-        e.target.removeAttribute("data-src");
-        obs.unobserve(e.target);
-      }
-    });
-  });
-  imgs.forEach(img => obs.observe(img));
-}
-
-//-------------------------------------------------------------
-// INDICATOR
+// PAGE INDICATOR
 //-------------------------------------------------------------
 function observePages() {
   const cards = document.querySelectorAll(".page-card");
@@ -104,7 +86,7 @@ function observePages() {
     });
   }, { threshold: 0.6 });
 
-  cards.forEach(card => obs.observe(card));
+  cards.forEach(c => obs.observe(c));
 }
 
 //-------------------------------------------------------------
@@ -113,94 +95,82 @@ function observePages() {
 function initSidebar() {
   thumbList.innerHTML = "";
 
-  pages.forEach(page => {
+  pages.forEach(p => {
     const li = document.createElement("li");
+    li.textContent =
+      p.start === null
+        ? p.label
+        : p.start === p.end
+        ? `${p.label} · ${p.start}`
+        : `${p.label} · ${p.start}–${p.end}`;
 
-    if (page.start !== null) {
-      li.textContent =
-        page.start === page.end
-          ? `${page.label} · ${page.start}`
-          : `${page.label} · ${page.start}–${page.end}`;
-    } else {
-      li.textContent = page.label;
-    }
-
-    li.onclick = () => {
-      if (page.start !== null) {
-        scrollToPage(String(page.start));
-      } else {
-        scrollToPage(page.label);
-      }
-    };
-
+    li.onclick = () => scrollToPage(p.start ?? p.label);
     thumbList.append(li);
   });
 }
 
 //-------------------------------------------------------------
-// SEARCH (NUMBER + TEXT)
+// SEARCH
 //-------------------------------------------------------------
 function scrollToPage(query) {
   const cards = [...document.querySelectorAll(".page-card")];
 
+  // number
   if (!isNaN(query)) {
     const num = Number(query);
     const card = cards.find(el => {
-      const start = Number(el.dataset.start);
-      const end = Number(el.dataset.end);
-      if (isNaN(start) || isNaN(end)) return false;
-      return start <= num && num <= end;
+      const s = Number(el.dataset.start);
+      const e = Number(el.dataset.end);
+      return !isNaN(s) && !isNaN(e) && s <= num && num <= e;
     });
-
-    if (card) {
-      card.scrollIntoView({ behavior: "smooth" });
-      return;
-    }
+    if (card) return card.scrollIntoView({ behavior: "smooth" });
   }
 
+  // text
   const text = query.toLowerCase();
   const card = cards.find(el => el.dataset.label.includes(text));
-
-  if (card) {
-    card.scrollIntoView({ behavior: "smooth" });
-  } else {
-    alert("Страница не найдена");
-  }
+  if (card) card.scrollIntoView({ behavior: "smooth" });
+  else alert("Страница не найдена");
 }
 
-//-------------------------------------------------------------
-// GOTO
-//-------------------------------------------------------------
 gotoBtn.onclick = () => {
-  const value = gotoInput.value.trim();
-  if (value) scrollToPage(value);
+  const v = gotoInput.value.trim();
+  if (v) scrollToPage(v);
 };
 
 //-------------------------------------------------------------
-// ZOOM
+// ZOOM (DESKTOP ONLY)
 //-------------------------------------------------------------
-function applyZoom() {
+const isMobile = window.innerWidth <= 768;
+
+if (!isMobile) {
+  document.getElementById("zoomIn").onclick = () => setZoom(scale + 0.1);
+  document.getElementById("zoomOut").onclick = () => setZoom(scale - 0.1);
+  document.getElementById("fitWidth").onclick = fitWidth;
+} else {
+  ["zoomIn","zoomOut","fitWidth"].forEach(id =>
+    document.getElementById(id).style.display = "none"
+  );
+}
+
+function setZoom(v) {
+  scale = Math.min(Math.max(v, 0.6), 2);
   viewer.style.transform = `scale(${scale})`;
   viewer.style.transformOrigin = "top center";
 }
 
-document.getElementById("zoomIn").onclick = () => {
-  scale = Math.min(scale + 0.1, 2);
-  applyZoom();
-};
-
-document.getElementById("zoomOut").onclick = () => {
-  scale = Math.max(scale - 0.1, 0.8);
-  applyZoom();
-};
-
-//-------------------------------------------------------------
-// FIT WIDTH
-//-------------------------------------------------------------
-document.getElementById("fitWidth").onclick = () => {
+function fitWidth() {
   scale = 1;
-  viewer.style.transform = "scale(1)";
-  viewer.style.width = "100%";
+  viewer.style.transform = "";
+}
+
+//-------------------------------------------------------------
+// FULLSCREEN
+//-------------------------------------------------------------
+document.getElementById("fullscreen").onclick = () => {
+  document.fullscreenElement
+    ? document.exitFullscreen()
+    : document.documentElement.requestFullscreen();
 };
 
 //-------------------------------------------------------------
@@ -208,32 +178,18 @@ document.getElementById("fitWidth").onclick = () => {
 //-------------------------------------------------------------
 const themeToggle = document.getElementById("themeToggle");
 
+themeToggle.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme",
+    document.body.classList.contains("dark") ? "dark" : "light");
+};
+
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
 }
 
-themeToggle.onclick = () => {
-  document.body.classList.toggle("dark");
-  localStorage.setItem(
-    "theme",
-    document.body.classList.contains("dark") ? "dark" : "light"
-  );
-};
-
-//-------------------------------------------------------------
-// FULLSCREEN
-//-------------------------------------------------------------
-document.getElementById("fullscreen").onclick = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-};
-
 //-------------------------------------------------------------
 // SIDEBAR TOGGLE
 //-------------------------------------------------------------
-document.getElementById("menuBtn").onclick = () => {
+document.getElementById("menuBtn").onclick = () =>
   sidebar.classList.toggle("open");
-};
