@@ -3,55 +3,58 @@
 //-------------------------------------------------------------
 let pages = [];
 let scale = 1;
-let currentPage = 1;
 
-// DOM elements
+// DOM
 const viewer = document.getElementById("viewer");
 const pageIndicator = document.getElementById("pageIndicator");
 const sidebar = document.getElementById("sidebar");
 const thumbList = document.getElementById("thumbList");
+const gotoInput = document.getElementById("gotoPage");
+const gotoBtn = document.getElementById("gotoBtn");
 
 //-------------------------------------------------------------
-// LOAD PAGES.JSON
+// LOAD JSON
 //-------------------------------------------------------------
 fetch("pages.json")
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("bookTitle").textContent = data.title;
-
-        pages = data.pages;
-        initViewer();
-        initSidebar();
-        observePages();
-    });
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("bookTitle").textContent = data.title;
+    pages = data.pages;
+    initViewer();
+    initSidebar();
+    observePages();
+  });
 
 //-------------------------------------------------------------
-// BUILD PAGE VIEW
+// VIEWER
 //-------------------------------------------------------------
 function initViewer() {
   viewer.innerHTML = "";
 
-  pages.forEach((page, index) => {
+  pages.forEach(page => {
     const card = document.createElement("div");
     card.className = "page-card";
-    card.id = "page-" + (index + 1);
 
-    // Заголовок страницы
+    card.dataset.start = page.start;
+    card.dataset.end = page.end;
+    card.dataset.label = page.label.toLowerCase();
+
     const title = document.createElement("div");
     title.style.fontWeight = "600";
     title.style.marginBottom = "6px";
 
-    if (page.number !== null) {
-      title.textContent = `${page.label} · Стр. ${page.number}`;
+    if (page.start !== null) {
+      title.textContent =
+        page.start === page.end
+          ? `${page.label} · Стр. ${page.start}`
+          : `${page.label} · Стр. ${page.start}–${page.end}`;
     } else {
       title.textContent = page.label;
     }
 
-    // Изображение
     const img = document.createElement("img");
     img.dataset.src = page.src;
 
-    // Кнопки
     const btns = document.createElement("div");
     btns.innerHTML = `<a href="${page.src}" target="_blank">Открыть</a>`;
 
@@ -60,141 +63,177 @@ function initViewer() {
   });
 
   lazyLoadImages();
-  updateIndicator(1);
 }
 
-
-
 //-------------------------------------------------------------
-// LAZY LOADING
+// LAZY LOAD
 //-------------------------------------------------------------
 function lazyLoadImages() {
-    const imgs = document.querySelectorAll("img[data-src]");
-
-    const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(e => {
-            if (e.isIntersecting) {
-                e.target.src = e.target.dataset.src;
-                e.target.removeAttribute("data-src");
-                obs.unobserve(e.target);
-            }
-        });
+  const imgs = document.querySelectorAll("img[data-src]");
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.src = e.target.dataset.src;
+        e.target.removeAttribute("data-src");
+        obs.unobserve(e.target);
+      }
     });
-
-    imgs.forEach(img => observer.observe(img));
+  });
+  imgs.forEach(img => obs.observe(img));
 }
 
 //-------------------------------------------------------------
-// PAGE OBSERVER → update current page indicator
+// INDICATOR
 //-------------------------------------------------------------
 function observePages() {
-    const cards = document.querySelectorAll(".page-card");
+  const cards = document.querySelectorAll(".page-card");
 
-    const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-            if (e.isIntersecting) {
-                currentPage = Number(e.target.id.split("-")[1]);
-                updateIndicator();
-            }
-        });
-    }, { threshold: 0.6 });
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
 
-    cards.forEach(card => obs.observe(card));
-}
+      const start = Number(e.target.dataset.start);
+      const end = Number(e.target.dataset.end);
 
-function updateIndicator() {
-    const page = pages[currentPage];
-
-    if (!page || page.number === null) {
+      if (!isNaN(start) && !isNaN(end)) {
+        pageIndicator.textContent =
+          start === end ? `Стр. ${start}` : `Стр. ${start}–${end}`;
+      } else {
         pageIndicator.textContent = "Вводная часть";
-    } else {
-        pageIndicator.textContent = `Стр. ${page.number}`;
-    }
-}
+      }
+    });
+  }, { threshold: 0.6 });
 
+  cards.forEach(card => obs.observe(card));
+}
 
 //-------------------------------------------------------------
-// SIDEBAR (thumbnails)
+// SIDEBAR
 //-------------------------------------------------------------
 function initSidebar() {
   thumbList.innerHTML = "";
 
-  pages.forEach((page, i) => {
+  pages.forEach(page => {
     const li = document.createElement("li");
 
-    if (page.number !== null) {
-      li.textContent = `${page.label} · ${page.number}`;
+    if (page.start !== null) {
+      li.textContent =
+        page.start === page.end
+          ? `${page.label} · ${page.start}`
+          : `${page.label} · ${page.start}–${page.end}`;
     } else {
       li.textContent = page.label;
     }
 
-    li.onclick = () => scrollToPage(i + 1);
+    li.onclick = () => {
+      if (page.start !== null) {
+        scrollToPage(String(page.start));
+      } else {
+        scrollToPage(page.label);
+      }
+    };
+
     thumbList.append(li);
   });
 }
 
+//-------------------------------------------------------------
+// SEARCH (NUMBER + TEXT)
+//-------------------------------------------------------------
+function scrollToPage(query) {
+  const cards = [...document.querySelectorAll(".page-card")];
 
-//-------------------------------------------------------------
-// GOTO PAGE
-//-------------------------------------------------------------
-function scrollToPage(index) {
-    const el = document.getElementById("page-" + index);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+  if (!isNaN(query)) {
+    const num = Number(query);
+    const card = cards.find(el => {
+      const start = Number(el.dataset.start);
+      const end = Number(el.dataset.end);
+      if (isNaN(start) || isNaN(end)) return false;
+      return start <= num && num <= end;
+    });
+
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+  }
+
+  const text = query.toLowerCase();
+  const card = cards.find(el => el.dataset.label.includes(text));
+
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth" });
+  } else {
+    alert("Страница не найдена");
+  }
 }
 
+//-------------------------------------------------------------
+// GOTO
+//-------------------------------------------------------------
+gotoBtn.onclick = () => {
+  const value = gotoInput.value.trim();
+  if (value) scrollToPage(value);
+};
 
 //-------------------------------------------------------------
-// ZOOM + FIT WIDTH
+// ZOOM
 //-------------------------------------------------------------
-document.getElementById("zoomIn").onclick = () => setZoom(scale + 0.1);
-document.getElementById("zoomOut").onclick = () => setZoom(scale - 0.1);
-document.getElementById("fitWidth").onclick = fitWidth;
-
-function setZoom(s) {
-    scale = Math.min(Math.max(s, 0.5), 2);
-    viewer.style.transform = `scale(${scale})`;
-    viewer.style.transformOrigin = "top center";
+function applyZoom() {
+  viewer.style.transform = `scale(${scale})`;
+  viewer.style.transformOrigin = "top center";
 }
 
-function fitWidth() {
-    viewer.style.transform = "";
-    scale = 1;
-}
+document.getElementById("zoomIn").onclick = () => {
+  scale = Math.min(scale + 0.1, 2);
+  applyZoom();
+};
+
+document.getElementById("zoomOut").onclick = () => {
+  scale = Math.max(scale - 0.1, 0.8);
+  applyZoom();
+};
 
 //-------------------------------------------------------------
-// FULLSCREEN
+// FIT WIDTH
 //-------------------------------------------------------------
-document.getElementById("fullscreen").onclick = () => {
-    if (!document.fullscreenElement)
-        document.documentElement.requestFullscreen();
-    else
-        document.exitFullscreen();
+document.getElementById("fitWidth").onclick = () => {
+  scale = 1;
+  viewer.style.transform = "scale(1)";
+  viewer.style.width = "100%";
 };
 
 //-------------------------------------------------------------
 // THEME
 //-------------------------------------------------------------
 const themeToggle = document.getElementById("themeToggle");
-themeToggle.onclick = () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-};
 
 if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
+  document.body.classList.add("dark");
 }
+
+themeToggle.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+};
+
+//-------------------------------------------------------------
+// FULLSCREEN
+//-------------------------------------------------------------
+document.getElementById("fullscreen").onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
 
 //-------------------------------------------------------------
 // SIDEBAR TOGGLE
 //-------------------------------------------------------------
 document.getElementById("menuBtn").onclick = () => {
-    sidebar.classList.toggle("open");
-};
-
-//-------------------------------------------------------------
-// GOTO BUTTON
-//-------------------------------------------------------------
-document.getElementById("gotoBtn").onclick = () => {
-    const n = Number(document.getElementById("gotoPage").value);
-    if (n >= 1 && n <= pages.length) scrollToPage(n);
+  sidebar.classList.toggle("open");
 };

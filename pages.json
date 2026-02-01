@@ -1,15 +1,15 @@
 {
   "title": "Конспект по мат. анализу",
   "pages": [
-    { "src": "pages/001.jpg", "label": "Обложка", "number": null },
-    { "src": "pages/002.jpg", "label": "Форзац", "number": null },
-    { "src": "pages/003.jpg", "label": "Рецензенты и содержание", "number": null },
-    { "src": "pages/004.jpg", "label": "Введение", "number": 4 },
+    { "src": "pages/001.jpg", "label": "Обложка", "start": null, "end": null },
+    { "src": "pages/002.jpg", "label": "Форзац", "start": null, "end": null },
+    { "src": "pages/003.jpg", "label": "Рецензенты и содержание", "start": null, "end": null },
 
-    { "src": "pages/005.jpg", "label": "Страница", "number": 5 },
-    { "src": "pages/006.jpg", "label": "Страница", "number": 6 },
-    { "src": "pages/007.jpg", "label": "Страница", "number": 7 },
-    { "src": "pages/008.jpg", "label": "Страница", "number": 8 },
-    { "src": "pages/009.jpg", "label": "Страница", "number": 9 }
+    { "src": "pages/004.jpg", "label": "Введение", "start": 4, "end": 5 },
+    { "src": "pages/005.jpg", "label": "Лекция", "start": 6, "end": 7 },
+    { "src": "pages/006.jpg", "label": "Лекция", "start": 8, "end": 9 },
+    { "src": "pages/007.jpg", "label": "Лекция", "start": 10, "end": 11 },
+    { "src": "pages/008.jpg", "label": "Лекция", "start": 12, "end": 13 },
+    { "src": "pages/009.jpg", "label": "Лекция", "start": 14, "end": 15 }
   ]
 }
