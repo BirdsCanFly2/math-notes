@@ -11,11 +11,19 @@ const sidebar = document.getElementById("sidebar");
 const thumbList = document.getElementById("thumbList");
 const gotoInput = document.getElementById("gotoPage");
 const gotoBtn = document.getElementById("gotoBtn");
+const fullscreenBtn = document.getElementById("fullscreen");
 
 // overlay
 const overlay = document.createElement("div");
 overlay.id = "overlay";
 document.body.appendChild(overlay);
+
+//-------------------------------------------------------------
+// MOBILE: hide fullscreen button
+//-------------------------------------------------------------
+if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+  fullscreenBtn.style.display = "none";
+}
 
 //-------------------------------------------------------------
 // LOAD JSON
@@ -59,12 +67,12 @@ function initViewer() {
     const img = document.createElement("img");
     img.dataset.src = page.src;
 
-    const btn = document.createElement("a");
-    btn.textContent = "Открыть";
-    btn.href = page.src;
-    btn.target = "_blank";
+    const link = document.createElement("a");
+    link.textContent = "Открыть";
+    link.href = page.src;
+    link.target = "_blank";
 
-    card.append(title, img, btn);
+    card.append(title, img, link);
     viewer.append(card);
   });
 
@@ -88,7 +96,7 @@ function lazyLoadImages() {
 }
 
 //-------------------------------------------------------------
-// INDICATOR
+// INDICATOR (scroll-based)
 //-------------------------------------------------------------
 function observePages() {
   const cards = document.querySelectorAll(".page-card");
@@ -97,19 +105,23 @@ function observePages() {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
 
-      const start = Number(e.target.dataset.start);
-      const end = Number(e.target.dataset.end);
-
-      if (!isNaN(start)) {
-        pageIndicator.textContent =
-          start === end ? `Стр. ${start}` : `Стр. ${start}–${end}`;
-      } else {
-        pageIndicator.textContent = "Вводная часть";
-      }
+      updateIndicatorFromCard(e.target);
     });
   }, { threshold: 0.6 });
 
   cards.forEach(c => obs.observe(c));
+}
+
+function updateIndicatorFromCard(card) {
+  const start = Number(card.dataset.start);
+  const end = Number(card.dataset.end);
+
+  if (!isNaN(start)) {
+    pageIndicator.textContent =
+      start === end ? `Стр. ${start}` : `Стр. ${start}–${end}`;
+  } else {
+    pageIndicator.textContent = "Вводная часть";
+  }
 }
 
 //-------------------------------------------------------------
@@ -140,28 +152,53 @@ function initSidebar() {
 function scrollToPage(query) {
   const cards = [...document.querySelectorAll(".page-card")];
 
+  // number search
   if (!isNaN(query)) {
     const num = Number(query);
+
     const card = cards.find(c => {
       const s = Number(c.dataset.start);
       const e = Number(c.dataset.end);
       return !isNaN(s) && s <= num && num <= e;
     });
-    if (card) return card.scrollIntoView({ behavior: "smooth" });
+
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth" });
+      updateIndicatorFromCard(card); // 🔴 FIX
+      return;
+    }
   }
 
+  // text search
   const text = String(query).toLowerCase();
   const card = cards.find(c => c.dataset.label.includes(text));
-  if (card) card.scrollIntoView({ behavior: "smooth" });
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth" });
+    updateIndicatorFromCard(card);
+  }
 }
 
 //-------------------------------------------------------------
 // BUTTONS
 //-------------------------------------------------------------
-gotoBtn.onclick = () => {
-  if (gotoInput.value.trim()) scrollToPage(gotoInput.value.trim());
-};
+gotoBtn.onclick = runSearch;
 
+// ENTER on mobile
+gotoInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    runSearch();
+  }
+});
+
+function runSearch() {
+  const val = gotoInput.value.trim();
+  if (val) scrollToPage(val);
+}
+
+//-------------------------------------------------------------
+// SIDEBAR TOGGLE
+//-------------------------------------------------------------
 document.getElementById("menuBtn").onclick = () => {
   sidebar.classList.add("open");
   overlay.classList.add("show");
