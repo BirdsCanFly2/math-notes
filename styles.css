@@ -1,6 +1,9 @@
-/* ========== RESET ========== */
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -15,13 +18,16 @@ body.dark {
   color: #eee;
 }
 
-/* ========== HEADER ========== */
 header {
   position: sticky;
   top: 0;
   z-index: 1000;
   background: white;
   border-bottom: 1px solid #ddd;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 8px;
 }
 
 body.dark header {
@@ -37,24 +43,16 @@ header .right {
   gap: 8px;
 }
 
-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  padding: 8px;
-  gap: 8px;
-}
-
 header h1 {
   font-size: 16px;
   margin: 0;
   white-space: nowrap;
 }
 
-/* inputs */
 header input {
   padding: 6px 8px;
   font-size: 14px;
-  max-width: 140px;
+  max-width: 160px;
 }
 
 header button {
@@ -62,7 +60,6 @@ header button {
   font-size: 14px;
 }
 
-/* ========== MAIN VIEW ========== */
 main {
   padding: 12px;
 }
@@ -72,6 +69,7 @@ main {
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 16px;
+  scroll-margin-top: 96px;
 }
 
 body.dark .page-card {
@@ -84,7 +82,6 @@ body.dark .page-card {
   border-radius: 6px;
 }
 
-/* ========== SIDEBAR ========== */
 #sidebar {
   position: fixed;
   top: 0;
@@ -106,7 +103,6 @@ body.dark #sidebar {
   left: 0;
 }
 
-/* overlay */
 #overlay {
   position: fixed;
   inset: 0;
@@ -119,7 +115,6 @@ body.dark #sidebar {
   display: block;
 }
 
-/* sidebar list */
 #thumbList {
   list-style: none;
   padding: 0;
@@ -127,7 +122,7 @@ body.dark #sidebar {
 }
 
 #thumbList li {
-  padding: 8px 4px;
+  padding: 10px 6px;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
 }
@@ -136,7 +131,6 @@ body.dark #thumbList li {
   border-color: #333;
 }
 
-/* ========== MOBILE FIXES ========== */
 @media (max-width: 768px) {
   header {
     grid-template-columns: 1fr;
@@ -145,8 +139,13 @@ body.dark #thumbList li {
   header .left,
   header .center,
   header .right {
+    width: 100%;
     justify-content: space-between;
     flex-wrap: wrap;
+  }
+
+  header .center {
+    gap: 6px;
   }
 
   header input {
@@ -160,5 +159,9 @@ body.dark #thumbList li {
 
   header button {
     padding: 6px;
+  }
+
+  .page-card {
+    scroll-margin-top: 140px;
   }
 }
