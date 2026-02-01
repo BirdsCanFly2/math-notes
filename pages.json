@@ -4,24 +4,26 @@
     { "src": "pages/001.jpg", "label": "Обложка", "start": null, "end": null },
     { "src": "pages/002.jpg", "label": "Форзац", "start": null, "end": null },
     { "src": "pages/003.jpg", "label": "Рецензенты и содержание", "start": null, "end": null },
+
     { "src": "pages/004.jpg", "label": "Введение", "start": 4, "end": 5 },
     { "src": "pages/005.jpg", "label": "Лекция", "start": 6, "end": 7 },
     { "src": "pages/006.jpg", "label": "Лекция", "start": 8, "end": 9 },
     { "src": "pages/007.jpg", "label": "Лекция", "start": 10, "end": 11 },
     { "src": "pages/008.jpg", "label": "Лекция", "start": 12, "end": 13 },
-    { "src": "pages/009.jpg", "label": "Лекция", "start": 14, "end": 15 }
-    { "src": "pages/010.jpg", "label": "Лекция", "start": 16, "end": 17 }
-    { "src": "pages/011.jpg", "label": "Лекция", "start": 18, "end": 19 }
-    { "src": "pages/012.jpg", "label": "Лекция", "start": 20, "end": 21 }
-    { "src": "pages/013.jpg", "label": "Лекция", "start": 22, "end": 23 }
-    { "src": "pages/014.jpg", "label": "Лекция", "start": 24, "end": 25 }
-    { "src": "pages/015.jpg", "label": "Лекция", "start": 26, "end": 27 }
-    { "src": "pages/016.jpg", "label": "Лекция", "start": 28, "end": 29 }
-    { "src": "pages/017.jpg", "label": "Лекция", "start": 30, "end": 31 }
-    { "src": "pages/018.jpg", "label": "Лекция", "start": 32, "end": 33 }
-    { "src": "pages/019.jpg", "label": "Лекция", "start": 34, "end": 35 }
-    { "src": "pages/020.jpg", "label": "Лекция", "start": 36, "end": 37 }
-    { "src": "pages/021.jpg", "label": "Лекция", "start": 38, "end": 39 }
+    { "src": "pages/009.jpg", "label": "Лекция", "start": 14, "end": 15 },
+
+    { "src": "pages/010.jpg", "label": "Лекция", "start": 16, "end": 17 },
+    { "src": "pages/011.jpg", "label": "Лекция", "start": 18, "end": 19 },
+    { "src": "pages/012.jpg", "label": "Лекция", "start": 20, "end": 21 },
+    { "src": "pages/013.jpg", "label": "Лекция", "start": 22, "end": 23 },
+    { "src": "pages/014.jpg", "label": "Лекция", "start": 24, "end": 25 },
+    { "src": "pages/015.jpg", "label": "Лекция", "start": 26, "end": 27 },
+    { "src": "pages/016.jpg", "label": "Лекция", "start": 28, "end": 29 },
+    { "src": "pages/017.jpg", "label": "Лекция", "start": 30, "end": 31 },
+    { "src": "pages/018.jpg", "label": "Лекция", "start": 32, "end": 33 },
+    { "src": "pages/019.jpg", "label": "Лекция", "start": 34, "end": 35 },
+    { "src": "pages/020.jpg", "label": "Лекция", "start": 36, "end": 37 },
+    { "src": "pages/021.jpg", "label": "Лекция", "start": 38, "end": 39 },
     { "src": "pages/022.jpg", "label": "Лекция", "start": 40, "end": 41 }
   ]
 }
