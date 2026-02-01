@@ -4,12 +4,12 @@
     { "src": "pages/001.jpg", "label": "Обложка", "number": null },
     { "src": "pages/002.jpg", "label": "Форзац", "number": null },
     { "src": "pages/003.jpg", "label": "Рецензенты и содержание", "number": null },
-    { "src": "pages/004.jpg", "label": "Введение", "number": null },
+    { "src": "pages/004.jpg", "label": "Введение", "number": 4 },
 
-    { "src": "pages/005.jpg", "label": "Страница", "number": 1 },
-    { "src": "pages/006.jpg", "label": "Страница", "number": 2 },
-    { "src": "pages/007.jpg", "label": "Страница", "number": 3 },
-    { "src": "pages/008.jpg", "label": "Страница", "number": 4 },
-    { "src": "pages/009.jpg", "label": "Страница", "number": 5 }
+    { "src": "pages/005.jpg", "label": "Страница", "number": 5 },
+    { "src": "pages/006.jpg", "label": "Страница", "number": 6 },
+    { "src": "pages/007.jpg", "label": "Страница", "number": 7 },
+    { "src": "pages/008.jpg", "label": "Страница", "number": 8 },
+    { "src": "pages/009.jpg", "label": "Страница", "number": 9 }
   ]
 }

@@ -29,35 +29,40 @@ fetch("pages.json")
 // BUILD PAGE VIEW
 //-------------------------------------------------------------
 function initViewer() {
-    viewer.innerHTML = "";
+  viewer.innerHTML = "";
 
-    pages.forEach((page, index) => {
-        const card = document.createElement("div");
-        card.className = "page-card";
-        card.id = "page-" + index;
+  pages.forEach((page, index) => {
+    const card = document.createElement("div");
+    card.className = "page-card";
+    card.id = "page-" + (index + 1);
 
-        const num = document.createElement("div");
-        num.className = "page-label";
+    // Заголовок страницы
+    const title = document.createElement("div");
+    title.style.fontWeight = "600";
+    title.style.marginBottom = "6px";
 
-        if (page.number === null) {
-            num.textContent = page.label;
-        } else {
-            num.textContent = `${page.label} ${page.number}`;
-        }
+    if (page.number !== null) {
+      title.textContent = `${page.label} · Стр. ${page.number}`;
+    } else {
+      title.textContent = page.label;
+    }
 
-        const img = document.createElement("img");
-        img.dataset.src = page.src;
+    // Изображение
+    const img = document.createElement("img");
+    img.dataset.src = page.src;
 
-        const btns = document.createElement("div");
-        btns.innerHTML = `<a href="${page.src}" target="_blank">Открыть</a>`;
+    // Кнопки
+    const btns = document.createElement("div");
+    btns.innerHTML = `<a href="${page.src}" target="_blank">Открыть</a>`;
 
-        card.append(num, img, btns);
-        viewer.append(card);
-    });
+    card.append(title, img, btns);
+    viewer.append(card);
+  });
 
-    lazyLoadImages();
-    updateIndicator();
+  lazyLoadImages();
+  updateIndicator(1);
 }
+
 
 
 //-------------------------------------------------------------
@@ -112,21 +117,22 @@ function updateIndicator() {
 // SIDEBAR (thumbnails)
 //-------------------------------------------------------------
 function initSidebar() {
-    thumbList.innerHTML = "";
+  thumbList.innerHTML = "";
 
-    pages.forEach((page, i) => {
-        const li = document.createElement("li");
+  pages.forEach((page, i) => {
+    const li = document.createElement("li");
 
-        if (page.number === null) {
-            li.textContent = page.label;
-        } else {
-            li.textContent = `Стр. ${page.number}`;
-        }
+    if (page.number !== null) {
+      li.textContent = `${page.label} · ${page.number}`;
+    } else {
+      li.textContent = page.label;
+    }
 
-        li.onclick = () => scrollToPage(i);
-        thumbList.append(li);
-    });
+    li.onclick = () => scrollToPage(i + 1);
+    thumbList.append(li);
+  });
 }
+
 
 //-------------------------------------------------------------
 // GOTO PAGE
