@@ -31,27 +31,34 @@ fetch("pages.json")
 function initViewer() {
     viewer.innerHTML = "";
 
-    pages.forEach((src, index) => {
+    pages.forEach((page, index) => {
         const card = document.createElement("div");
         card.className = "page-card";
-        card.id = "page-" + (index + 1);
+        card.id = "page-" + index;
 
         const num = document.createElement("div");
-        num.textContent = "Страница " + (index + 1);
+        num.className = "page-label";
+
+        if (page.number === null) {
+            num.textContent = page.label;
+        } else {
+            num.textContent = `${page.label} ${page.number}`;
+        }
 
         const img = document.createElement("img");
-        img.dataset.src = src;   // lazy loading
+        img.dataset.src = page.src;
 
         const btns = document.createElement("div");
-        btns.innerHTML = `<a href="${src}" target="_blank">Открыть</a>`;
+        btns.innerHTML = `<a href="${page.src}" target="_blank">Открыть</a>`;
 
         card.append(num, img, btns);
         viewer.append(card);
     });
 
     lazyLoadImages();
-    updateIndicator(1);
+    updateIndicator();
 }
+
 
 //-------------------------------------------------------------
 // LAZY LOADING
@@ -82,7 +89,7 @@ function observePages() {
         entries.forEach(e => {
             if (e.isIntersecting) {
                 currentPage = Number(e.target.id.split("-")[1]);
-                updateIndicator(currentPage);
+                updateIndicator();
             }
         });
     }, { threshold: 0.6 });
@@ -90,9 +97,16 @@ function observePages() {
     cards.forEach(card => obs.observe(card));
 }
 
-function updateIndicator(n) {
-    pageIndicator.textContent = `Стр. ${n} / ${pages.length}`;
+function updateIndicator() {
+    const page = pages[currentPage];
+
+    if (!page || page.number === null) {
+        pageIndicator.textContent = "Вводная часть";
+    } else {
+        pageIndicator.textContent = `Стр. ${page.number}`;
+    }
 }
+
 
 //-------------------------------------------------------------
 // SIDEBAR (thumbnails)
@@ -100,10 +114,16 @@ function updateIndicator(n) {
 function initSidebar() {
     thumbList.innerHTML = "";
 
-    pages.forEach((src, i) => {
+    pages.forEach((page, i) => {
         const li = document.createElement("li");
-        li.textContent = "Страница " + (i + 1);
-        li.onclick = () => scrollToPage(i + 1);
+
+        if (page.number === null) {
+            li.textContent = page.label;
+        } else {
+            li.textContent = `Стр. ${page.number}`;
+        }
+
+        li.onclick = () => scrollToPage(i);
         thumbList.append(li);
     });
 }
@@ -111,10 +131,11 @@ function initSidebar() {
 //-------------------------------------------------------------
 // GOTO PAGE
 //-------------------------------------------------------------
-function scrollToPage(n) {
-    const el = document.getElementById("page-" + n);
+function scrollToPage(index) {
+    const el = document.getElementById("page-" + index);
     if (el) el.scrollIntoView({ behavior: "smooth" });
 }
+
 
 //-------------------------------------------------------------
 // ZOOM + FIT WIDTH
