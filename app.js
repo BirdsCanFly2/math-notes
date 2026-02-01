@@ -12,6 +12,11 @@ const thumbList = document.getElementById("thumbList");
 const gotoInput = document.getElementById("gotoPage");
 const gotoBtn = document.getElementById("gotoBtn");
 
+// overlay
+const overlay = document.createElement("div");
+overlay.id = "overlay";
+document.body.appendChild(overlay);
+
 //-------------------------------------------------------------
 // LOAD JSON
 //-------------------------------------------------------------
@@ -39,7 +44,8 @@ function initViewer() {
     card.dataset.label = page.label.toLowerCase();
 
     const title = document.createElement("div");
-    title.className = "page-title";
+    title.style.fontWeight = "600";
+    title.style.marginBottom = "6px";
 
     if (page.start !== null) {
       title.textContent =
@@ -51,21 +57,38 @@ function initViewer() {
     }
 
     const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = page.src;
+    img.dataset.src = page.src;
 
-    const link = document.createElement("a");
-    link.href = page.src;
-    link.target = "_blank";
-    link.textContent = "Открыть";
+    const btn = document.createElement("a");
+    btn.textContent = "Открыть";
+    btn.href = page.src;
+    btn.target = "_blank";
 
-    card.append(title, img, link);
+    card.append(title, img, btn);
     viewer.append(card);
   });
+
+  lazyLoadImages();
 }
 
 //-------------------------------------------------------------
-// PAGE INDICATOR
+// LAZY LOAD
+//-------------------------------------------------------------
+function lazyLoadImages() {
+  const imgs = document.querySelectorAll("img[data-src]");
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.src = e.target.dataset.src;
+        obs.unobserve(e.target);
+      }
+    });
+  });
+  imgs.forEach(i => obs.observe(i));
+}
+
+//-------------------------------------------------------------
+// INDICATOR
 //-------------------------------------------------------------
 function observePages() {
   const cards = document.querySelectorAll(".page-card");
@@ -77,7 +100,7 @@ function observePages() {
       const start = Number(e.target.dataset.start);
       const end = Number(e.target.dataset.end);
 
-      if (!isNaN(start) && !isNaN(end)) {
+      if (!isNaN(start)) {
         pageIndicator.textContent =
           start === end ? `Стр. ${start}` : `Стр. ${start}–${end}`;
       } else {
@@ -95,16 +118,18 @@ function observePages() {
 function initSidebar() {
   thumbList.innerHTML = "";
 
-  pages.forEach(p => {
+  pages.forEach(page => {
     const li = document.createElement("li");
     li.textContent =
-      p.start === null
-        ? p.label
-        : p.start === p.end
-        ? `${p.label} · ${p.start}`
-        : `${p.label} · ${p.start}–${p.end}`;
+      page.start !== null
+        ? `${page.label} · ${page.start}–${page.end}`
+        : page.label;
 
-    li.onclick = () => scrollToPage(p.start ?? p.label);
+    li.onclick = () => {
+      scrollToPage(page.start ?? page.label);
+      closeSidebar();
+    };
+
     thumbList.append(li);
   });
 }
@@ -115,81 +140,59 @@ function initSidebar() {
 function scrollToPage(query) {
   const cards = [...document.querySelectorAll(".page-card")];
 
-  // number
   if (!isNaN(query)) {
     const num = Number(query);
-    const card = cards.find(el => {
-      const s = Number(el.dataset.start);
-      const e = Number(el.dataset.end);
-      return !isNaN(s) && !isNaN(e) && s <= num && num <= e;
+    const card = cards.find(c => {
+      const s = Number(c.dataset.start);
+      const e = Number(c.dataset.end);
+      return !isNaN(s) && s <= num && num <= e;
     });
     if (card) return card.scrollIntoView({ behavior: "smooth" });
   }
 
-  // text
-  const text = query.toLowerCase();
-  const card = cards.find(el => el.dataset.label.includes(text));
+  const text = String(query).toLowerCase();
+  const card = cards.find(c => c.dataset.label.includes(text));
   if (card) card.scrollIntoView({ behavior: "smooth" });
-  else alert("Страница не найдена");
 }
 
+//-------------------------------------------------------------
+// BUTTONS
+//-------------------------------------------------------------
 gotoBtn.onclick = () => {
-  const v = gotoInput.value.trim();
-  if (v) scrollToPage(v);
+  if (gotoInput.value.trim()) scrollToPage(gotoInput.value.trim());
 };
 
-//-------------------------------------------------------------
-// ZOOM (DESKTOP ONLY)
-//-------------------------------------------------------------
-const isMobile = window.innerWidth <= 768;
+document.getElementById("menuBtn").onclick = () => {
+  sidebar.classList.add("open");
+  overlay.classList.add("show");
+};
 
-if (!isMobile) {
-  document.getElementById("zoomIn").onclick = () => setZoom(scale + 0.1);
-  document.getElementById("zoomOut").onclick = () => setZoom(scale - 0.1);
-  document.getElementById("fitWidth").onclick = fitWidth;
-} else {
-  ["zoomIn","zoomOut","fitWidth"].forEach(id =>
-    document.getElementById(id).style.display = "none"
-  );
+overlay.onclick = closeSidebar;
+
+function closeSidebar() {
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
 }
 
-function setZoom(v) {
-  scale = Math.min(Math.max(v, 0.6), 2);
+//-------------------------------------------------------------
+// ZOOM
+//-------------------------------------------------------------
+document.getElementById("zoomIn").onclick = () => setZoom(scale + 0.1);
+document.getElementById("zoomOut").onclick = () => setZoom(scale - 0.1);
+document.getElementById("fitWidth").onclick = () => {
+  scale = 1;
+  viewer.style.transform = "";
+};
+
+function setZoom(s) {
+  scale = Math.min(Math.max(s, 0.6), 2);
   viewer.style.transform = `scale(${scale})`;
   viewer.style.transformOrigin = "top center";
 }
 
-function fitWidth() {
-  scale = 1;
-  viewer.style.transform = "";
-}
-
-//-------------------------------------------------------------
-// FULLSCREEN
-//-------------------------------------------------------------
-document.getElementById("fullscreen").onclick = () => {
-  document.fullscreenElement
-    ? document.exitFullscreen()
-    : document.documentElement.requestFullscreen();
-};
-
 //-------------------------------------------------------------
 // THEME
 //-------------------------------------------------------------
-const themeToggle = document.getElementById("themeToggle");
-
-themeToggle.onclick = () => {
+document.getElementById("themeToggle").onclick = () => {
   document.body.classList.toggle("dark");
-  localStorage.setItem("theme",
-    document.body.classList.contains("dark") ? "dark" : "light");
 };
-
-if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark");
-}
-
-//-------------------------------------------------------------
-// SIDEBAR TOGGLE
-//-------------------------------------------------------------
-document.getElementById("menuBtn").onclick = () =>
-  sidebar.classList.toggle("open");
